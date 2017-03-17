@@ -7,8 +7,14 @@ import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.concurrent.Future;
+
+import com.ning.http.client.*;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
+import okapi.client.HttpInvokeFuture;
+import okapi.client.InvokeFuture;
 
 public class Tools {
 	public static byte[] transToBytes(Object obj) {
@@ -238,5 +244,44 @@ public class Tools {
 			}
 		}
 		return al.toArray();
+	}
+	public static InvokeFuture forwardHttp(String method, String url
+			, Map<String, String> arg, Map<String, String> hs, Object body) {
+		method = method.toUpperCase();
+		ByteBuffer bb = Tools.transToByteBuffer(body);
+		byte[] bs = null;
+		if (bb != null) {
+			bs = bb.array();
+		}
+
+//		if(body instanceof JSONObject || body instanceof JSONArray) {
+//			if(hs == null){
+//				hs = new HashMap<String, String>();
+//			}
+//			hs.put("Content-Type", "application/json");
+//		}
+
+		AsyncHttpClient client = new AsyncHttpClient(new AsyncHttpClientConfig.Builder().setAcceptAnyCertificate(true).build());
+		RequestBuilder builder = new RequestBuilder(method);
+		builder.setUrl(url);
+		if (arg != null && !arg.isEmpty()) {
+			for (Map.Entry<String, String> set : arg.entrySet()) {
+				builder.addQueryParam(set.getKey(),  set.getValue());
+			}
+		}
+		if (hs != null) {
+			for (Map.Entry<String, String> set : hs.entrySet()) {
+				builder.setHeader(set.getKey(), set.getValue());
+			}
+		}
+		if (!method.equals("GET")) {
+			builder.setBody(bs);
+		}
+
+		Request req =  builder.build();
+		System.out.println("HTTP:" + req.getUrl());
+
+		Future<Response> f = client.executeRequest(req);
+		return new HttpInvokeFuture(f, client);
 	}
 }

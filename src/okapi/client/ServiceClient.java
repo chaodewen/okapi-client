@@ -94,45 +94,6 @@ public class ServiceClient {
 				api_path = "http://localhost:6666" + api_path;
 			}
 		}
-		return forwardHttp(method, api_path, arg, headers, body);
-	}
-	private static InvokeFuture forwardHttp(String method, String url,
-			Map<String, String> arg, Map<String, String> hs, Object body) {
-		method = method.toUpperCase();
-		ByteBuffer bb = Tools.transToByteBuffer(body);
-		byte[] bs = null;
-		if (bb != null) {
-			bs = bb.array();
-		}
-		
-//		if(body instanceof JSONObject || body instanceof JSONArray) {
-//			if(hs == null){
-//				hs = new HashMap<String, String>();
-//			}
-//			hs.put("Content-Type", "application/json");
-//		}
-		
-		AsyncHttpClient client = new AsyncHttpClient(new AsyncHttpClientConfig.Builder().setAcceptAnyCertificate(true).build());
-		RequestBuilder builder = new RequestBuilder(method);
-		builder.setUrl(url);
-		if (arg != null && !arg.isEmpty()) {
-			for (Entry<String, String> set : arg.entrySet()) {
-				builder.addQueryParam(set.getKey(),  set.getValue());
-			}
-		}
-		if (hs != null) {
-			for (Entry<String, String> set : hs.entrySet()) {
-				builder.setHeader(set.getKey(), set.getValue());
-			}
-		}
-		if (!method.equals("GET")) {
-			builder.setBody(bs);
-		}
-		
-		Request req =  builder.build();
-		System.out.println("HTTP:" + req.getUrl());
-
-		Future<com.ning.http.client.Response> f = client.executeRequest(req);
-		return new HttpInvokeFuture(f, client);
+		return Tools.forwardHttp(method, api_path, arg, headers, body);
 	}
 }
