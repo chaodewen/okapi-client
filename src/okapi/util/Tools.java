@@ -158,7 +158,7 @@ public class Tools {
 				if(defPart[i].length() == 0 || targetPart[i].length() == 0) {
 					return false;
 				}
-				if(defPart[i].matches("<[a-zA-Z][\\w]+:[\\w-?%&={}]+>")) {
+				if(defPart[i].matches("<[a-zA-Z][\\w]+:[-?%&={}\\w]+>")) {
 					String type = defPart[i].substring(1, defPart[i].indexOf(":"));
 					String value = targetPart[i];
 					if(type.equals("boolean") && value.matches("true|false")) {
@@ -223,7 +223,7 @@ public class Tools {
 		String[] defPart = Tools.separateURI(def);
 		String[] lastPart = Tools.separateURI(api_path_last);
 		for(int i = 0; i < defPart.length; i++) {
-			if(defPart[i].matches("<[a-zA-Z][\\w]+:[\\w-?%&={}]+>")) {
+			if(defPart[i].matches("<[a-zA-Z][\\w]+:[-?%&={}]+\\w>")) {
 				String type = defPart[i].substring(1, defPart[i].indexOf(":"));
 				String value = lastPart[i];
 				if(type.equals("boolean") && value.matches("true|false")) {
