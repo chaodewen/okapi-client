@@ -10,7 +10,6 @@ import net.sf.json.JSONObject;
 import okapi.client.Service;
 
 import com.sun.net.httpserver.*;
-import com.sun.net.httpserver.spi.HttpServerProvider;
 
 public class Server {
 	private  Class<?> module;
@@ -24,15 +23,12 @@ public class Server {
 		}
 	}
 	private void start(int port) throws IOException {
-		HttpServerProvider httpServerProvider = HttpServerProvider.provider();
-		// 设置端口和能同时接受的请求数
-		HttpServer httpServer = httpServerProvider.createHttpServer(new InetSocketAddress(port), 100);
-//		HttpServer httpServer = HttpServer.create(new InetSocketAddress(port), 100);
-		httpServer.createContext("/", new HttpServerHandler(this.module));
-		httpServer.setExecutor(Executors.newCachedThreadPool());
-//		httpServer.setExecutor(null);
-		httpServer.start();
-		System.out.println("HttpServer Started.");
+		HttpServer server = HttpServer.create(new InetSocketAddress(port), 100);
+		server.createContext("/", new HttpServerHandler(this.module));
+		server.setExecutor(Executors.newCachedThreadPool()); // creates a default executor
+		server.start();
+
+		System.out.println("Http server is working in : " + "http://localhost:" + port);
 	}
 	public void localRun(int port) {
 		JSONObject body = new JSONObject();
@@ -44,14 +40,7 @@ public class Server {
 			StringWriter sw = new StringWriter();
 			ex.printStackTrace(new PrintWriter(sw));		
 			body.put("status", "exited");
-			body.put("message", "Java版本过高，请使用Java1.7编译API");
-			body.put("debug", sw.toString());
-		} catch (IOException ex) {
-			ex.printStackTrace();
-			StringWriter sw = new StringWriter();
-			ex.printStackTrace(new PrintWriter(sw));		
-			body.put("status", "exited");
-			body.put("message", ex.getMessage());
+			body.put("message", "Java版本过高，请使用Java 1.7编译.");
 			body.put("debug", sw.toString());
 		} catch (Exception ex) {
 			ex.printStackTrace();
@@ -60,8 +49,6 @@ public class Server {
 			body.put("status", "exited");
 			body.put("message", ex.getMessage());
 			body.put("debug", sw.toString());
-		} finally {
-			System.out.println("process exit");
 		}
 	}
 //	public static void main(String args[]) {

@@ -218,32 +218,32 @@ public class Tools {
 			return false;
 		}
 	}
-	public static Object[] getArg( String def, String api_path_last) {
-		ArrayList<Object> al = new ArrayList<Object>();
+	public static Object[] getArg(String def, String api_path_last) {
+		ArrayList<Object> list = new ArrayList<Object>();
 		String[] defPart = Tools.separateURI(def);
 		String[] lastPart = Tools.separateURI(api_path_last);
 		for(int i = 0; i < defPart.length; i++) {
-			if(defPart[i].matches("<[a-zA-Z][\\w]+:[-?%&={}]+\\w>")) {
+			if(defPart[i].matches("<[a-zA-Z]+:[-?%&={}\\w]+>")) {
 				String type = defPart[i].substring(1, defPart[i].indexOf(":"));
 				String value = lastPart[i];
 				if(type.equals("boolean") && value.matches("true|false")) {
-					al.add(Boolean.valueOf(value));
+					list.add(Boolean.valueOf(value));
 				}
 				else if(type.equals("String")) {
-					al.add(value);
+					list.add(value);
 				}
 				else if(type.equals("int") && value.matches("\\d+")) {
-					al.add(Integer.valueOf(value));
+					list.add(Integer.valueOf(value));
 				}
 				else if(type.equals("double") && value.matches("\\d+(.\\d+)?")) {
-					al.add(Double.valueOf(value));
+					list.add(Double.valueOf(value));
 				}
 				else if(type.equals("float") && value.matches("\\d+(.\\d+)?")) {
-					al.add(Float.parseFloat(value));
+					list.add(Float.parseFloat(value));
 				}
 			}
 		}
-		return al.toArray();
+		return list.toArray();
 	}
 	public static InvokeFuture forwardHttp(String method, String url
 			, Map<String, String> arg, Map<String, String> hs, Object body) {

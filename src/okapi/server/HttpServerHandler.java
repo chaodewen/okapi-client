@@ -86,6 +86,7 @@ public class HttpServerHandler implements HttpHandler {
 	}
 	@Override
 	public void handle(HttpExchange httpExchange) throws IOException  {
+		System.out.println("Starting to handle ...");
 		try {
 			// URI参数
 			Map<String, String> arg = new HashMap<String, String>();
@@ -141,6 +142,7 @@ public class HttpServerHandler implements HttpHandler {
 			outputStream.close();
 			is.close();
 			httpExchange.close();
+			System.out.println("Exiting handling ...");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -149,14 +151,14 @@ public class HttpServerHandler implements HttpHandler {
 		if(!api_path.startsWith("/")) {
 			api_path = "/" + api_path;
 		}
-		System.out.println("Invoke Incoming(api_path: " + api_path + ").");			
+		System.out.println("Invoke is incoming with api_path : " + api_path + " ...");
 		Object obj = null;
 		int code = 200;
 		Map<String, String> h = new HashMap<String, String>();
 		for(ApiRule  rule : this.api) {
 			if(rule.isMatched(method, api_path)){
 				Method m = rule.getMethod();
-				System.out.println("Call Method:"+m.getName() + ".");
+				System.out.println("Calling Method : "+ m.getName() + " ...");
 				m.setAccessible(true);
 				Object[] uriArg = Tools.getArg(rule.getRule(), api_path);
 				if(uriArg.length == m.getParameterTypes().length) {
@@ -186,26 +188,58 @@ public class HttpServerHandler implements HttpHandler {
 						obj +=i + ":"  + m.getParameterTypes()[i].toString() + "|";
 					}
 				}
-				// 对结果进行处理
+				// 本地测试结果不进行ByteBuffer包装
 				if(obj instanceof Response) {
-					Response cRsp = (Response) obj;
-					code = cRsp.getCode();
-					h = cRsp.getHeaders();
-					obj = cRsp.getBody();
-				} else if(obj instanceof JSONObject || obj instanceof JSONArray) {
-					h.put("Content-Type", "application/json");
-				} else if(obj instanceof byte[] || obj instanceof ByteBuffer) {
-					h.put("Content-Type", "application/octet-stream");
-				} else {
-					h.put("Content-Type", "text/plain");
+					return (Response) obj;
 				}
-				ByteBuffer bb = Tools.transToByteBuffer(obj);
-				return new Response(code, h, bb);
+				else if(obj instanceof JSONObject) {
+					h.put("Content-Type", "application/json");
+					return new Response(code, h, ((JSONObject) obj).toString());
+				}
+				else if (obj instanceof JSONArray) {
+					h.put("Content-Type", "application/json");
+					return new Response(code, h, ((JSONArray) obj).toString());
+				}
+				else if(obj instanceof byte[]) {
+					h.put("Content-Type", "application/octet-stream");
+					return new Response(code, h, (byte[]) obj);
+				}
+				else if(obj instanceof ByteBuffer) {
+					h.put("Content-Type", "application/octet-stream");
+					ByteBuffer bb = Tools.transToByteBuffer(obj);
+					return new Response(code, h, bb);
+				}
+				else if(obj instanceof Integer) {
+					h.put("Content-Type", "text/plain");
+					return new Response(code, h, ((Integer) obj).toString());
+				}
+				else if(obj instanceof Long) {
+					h.put("Content-Type", "text/plain");
+					return new Response(code, h, ((Long) obj).toString());
+				}
+				else if(obj instanceof Short) {
+					h.put("Content-Type", "text/plain");
+					return new Response(code, h, ((Short) obj).toString());
+				}
+				else if(obj instanceof Double) {
+					h.put("Content-Type", "text/plain");
+					return new Response(code, h, ((Double) obj).toString());
+				}
+				else if(obj instanceof Float) {
+					h.put("Content-Type", "text/plain");
+					return new Response(code, h, ((Float) obj).toString());
+				}
+				else if(obj instanceof String) {
+					h.put("Content-Type", "text/plain");
+					return new Response(code, h, (String) obj);
+				}
+				else {
+					h.put("Content-Type", "text/plain");
+					return new Response(code, h, obj);
+				}
 			}
 		}
 		code = 404;
-		obj = "Matched Rule Not Found!";
-		ByteBuffer bb = Tools.transToByteBuffer(obj);
-		return new Response(code, h, bb);
+		return new Response(code, h, "Matched Rule Not Found!");
 	}
 }
